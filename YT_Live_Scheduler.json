@@ -1,0 +1,572 @@
+{
+  "name": "Production Copy",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Live Stream Details",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Game Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Commentary Language",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Part Number",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Live Date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Live Time (24HRS FORMAT)",
+              "placeholder": "HH:mm",
+              "defaultValue": "00:00",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Thumbnail ",
+              "fieldType": "file",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -272,
+        432
+      ],
+      "id": "404d798d-f723-4dfc-a794-04fdaf60ab05",
+      "name": "On form submission",
+      "webhookId": "4d4fac72-e506-4d7a-b097-e350d3a27684"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4b2392f2-760c-43ae-87f9-aa38d77a70c2",
+              "name": "gameName",
+              "value": "={{ $json['Game Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "84c9e93a-6610-46de-adbb-fb5e25791649",
+              "name": "lang",
+              "value": "={{ $json['Commentary Language'] }}",
+              "type": "string"
+            },
+            {
+              "id": "a91c1057-1165-4505-91cd-32282a1c1f92",
+              "name": "part",
+              "value": "={{ $json['Part Number'] }}",
+              "type": "number"
+            },
+            {
+              "id": "78980d38-ad7e-4f57-b970-54338ceb50d4",
+              "name": "scheduleDatatime",
+              "value": "={{ $json['Live Date'] + \"T\" + $json['Live Time (24HRS FORMAT)'] + \":00+05:30\" }}",
+              "type": "string"
+            },
+            {
+              "id": "398fafd3-f9ac-4a4b-bd1f-e8cc32c655e7",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        256
+      ],
+      "id": "1a10690a-bebd-42eb-b663-5426ed8a9565",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert YouTube SEO strategist and gaming content writer.\n\nGenerate an SEO-optimized YouTube Title and Description for the game \"{{ $json['Game Name'] }}\".\n\nRequirements:\n- Mention \"Part {{ $json['Part Number'] }}\" naturally in both the title and description.\n- mention that the commentary is \"{{ $json['Commentary Language'] }}\"wiwithout using commentary word.\n- Create a title that is highly clickable, engaging, and optimized for YouTube search.\n- Keep the title under 100 characters (preferably 60–80 characters).\n- The description should:\n  - Start with a compelling 1–2 sentence introduction.\n  - Mention the game name, part number, and commentary language naturally.\n  - Briefly describe what viewers can expect in this episode.\n  - Encourage viewers to Like, Comment, Share, and Subscribe.\n  - Include a short call-to-action to turn on notifications.\n  - End with 10–15 relevant SEO keywords/hashtags.\n\nOutput ONLY in the following JSON format:\n\n{\n  \"title\": \"...\",\n  \"description\": \"...\"\n}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a Youtube SEO Assistant.\nProvide details carefully by referring global youtube"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        592
+      ],
+      "id": "51dac041-51e1-40e8-b484-bf6100895f3a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"title\":\"string\",\n    \"description\":\"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        832
+      ],
+      "id": "7e74770f-674b-4ad5-af48-53f109d04c20",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet,status,contentDetails"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"snippet\": {\n    \"title\": \"{{ $json.output.title }}\",\n    \"description\": \"{{ $json.cleanDescription }}\",\n    \"scheduledStartTime\": \"{{ $json.scheduleDatatime }}\"\n  },\n  \"status\": {\n    \"privacyStatus\": \"public\",\n    \"selfDeclaredMadeForKids\": false\n  },\n  \"contentDetails\": {\n    \"enableAutoStart\": true,\n    \"enableAutoStop\": true\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        944,
+        512
+      ],
+      "id": "ca311bd9-389e-4900-beea-fd402f8cb26f",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "sqrYEomdMzTm5gUB",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 20000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        48,
+        832
+      ],
+      "id": "59f2ba63-c4d9-4954-801e-c7b8fc035627",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "mL1PpdMCfOpdJRSY",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/youtube/v3/liveStreams",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet,cdn"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"snippet\":{\n\"title\":\"{{ $json.snippet.title }}\"\n},\n\"cdn\":{\n\"frameRate\":\"variable\",\n\"ingestionType\":\"rtmp\",\n\"resolution\":\"variable\"\n}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1104,
+        512
+      ],
+      "id": "348a5568-2066-45f7-b55d-eb3c69f924e3",
+      "name": "HTTP Request1",
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "sqrYEomdMzTm5gUB",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/youtube/v3/liveBroadcasts/bind",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "={{ $('HTTP Request').item.json.id }}"
+            },
+            {
+              "name": "stream id",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "part",
+              "value": "id,contentDetails"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1264,
+        512
+      ],
+      "id": "d4a30bdc-01bc-419b-996e-592d0cd5ecf2",
+      "name": "HTTP Request2",
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "sqrYEomdMzTm5gUB",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/thumbnails/set",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "videoId",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "={{ $binary['Thumbnail_'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1568,
+        272
+      ],
+      "id": "48e3bbde-cbb2-4c5c-b1b2-6561308555d4",
+      "name": "HTTP Request3",
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "sqrYEomdMzTm5gUB",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        800,
+        512
+      ],
+      "id": "460844fe-c491-457f-8d92-71747fa29e93",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "75a46e8d-ffbc-4fdd-aaae-f132baf9929a",
+              "name": "=cleanDescription",
+              "value": "={{$json.output.description.replace(/\\n/g,' ').replace(/\"/g,\"'\")}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        592
+      ],
+      "id": "5d8a4ce0-5f07-4f5f-b25e-63b893df621d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1408,
+        272
+      ],
+      "id": "c245d879-65c5-4eb5-aded-43455e23e742",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "content": "Create A new Api Key From OpenRouter with your desired model or just use any model you want and link its respective api ",
+        "height": 96,
+        "width": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -432,
+        832
+      ],
+      "typeVersion": 1,
+      "id": "e9362ec4-a63d-418d-b47e-f07f9d9f4356",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Add Credentials - Google OAuth2\n\n1. Open Google Cloud Console\nGo to the Google Cloud Console.\nCreate a new project (or use an existing one).\n2. Enable the YouTube API\nEnable YouTube Data API v3 for your project.\n3. Configure the OAuth consent screen\nGo to APIs & Services → OAuth consent screen.\nChoose External (unless you're using a Google Workspace organization).\nFill in the required app information.\nAdd your Google account as a Test User if the app is still in testing.\n4. Create OAuth credentials\nGo to APIs & Services → Credentials.\nClick Create Credentials → OAuth Client ID.\nChoose Web application.\nAdd the redirect URI that n8n provides (you can see it in the OAuth credential setup screen in n8n).\nClick Create.\n\nGoogle will show you:\n\nClient ID\nClient Secret\n\nCopy both into the n8n OAuth2 credential.",
+        "height": 576,
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        608,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "3c6c4cb0-62c9-4b0f-b20b-69914ae7595f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "If n8n Blocks Connection during Logging to your Google Account\n\nChoose Publish in Audience (Google Console - Google Auth Platform)",
+        "height": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "1fb4816d-918d-42a2-931f-c78b6f7c9a19",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Scope: https://www.googleapis.com/auth/youtube"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1104,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "1e81c632-d7fb-477a-b3c7-47e01bb41e85",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "You can alter the AI Generator Prompt Of Your Choice\n\nAlso Reduce Maximum Tokens based on your model",
+        "height": 80,
+        "width": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        112,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "7967da22-2adc-463c-9560-5248abafe3b1",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ca9ba57c-d9f5-43d9-b733-0d2544f6c6b7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e4cd87ab0ef3e89e835217bcbfa3e3c720ed09e4da5bfd12f280d27be33a92c"
+  },
+  "nodeGroups": [],
+  "id": "JOdbyj40myn62g1N",
+  "tags": []
+}
