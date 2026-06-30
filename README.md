@@ -1,5 +1,8 @@
 🎥 n8n YouTube Live Scheduler Workflow
 
+<img width="1920" height="1080" alt="JUST CHATTING (2)" src="https://github.com/user-attachments/assets/632dcc7b-85dc-4d92-8492-98d755ad0c15" />
+
+
 This project is a ready-to-use n8n workflow for automating YouTube Live scheduling. It helps users easily create, configure, and schedule YouTube live streams using a structured JSON-based setup.
 
 Instead of building everything from scratch, users can simply download the workflow and import it into their own n8n instance.
