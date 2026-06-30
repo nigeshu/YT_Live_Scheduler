@@ -6,11 +6,17 @@ Instead of building everything from scratch, users can simply download the workf
 
 🚀 Features
 📅 Automates YouTube Live Broadcast scheduling
+
 🔗 Uses YouTube Data API for stream creation and management
+
 ⚙️ Supports custom inputs like title, description, tags, and scheduled time
+
 🔐 Works with your own Google/YouTube OAuth credentials
+
 📦 Lightweight setup using a single workflow JSON file
+
 🧩 Easily extendable with your own nodes or logic
+
 📥 How to Use
 Download the workflow JSON file from this repository
 Import it into your n8n instance
