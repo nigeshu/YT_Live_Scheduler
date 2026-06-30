@@ -17,16 +17,29 @@ Instead of building everything from scratch, users can simply download the workf
 
 🧩 Easily extendable with your own nodes or logic
 
+
 📥 How to Use
+
 Download the workflow JSON file from this repository
+
 Import it into your n8n instance
+
 Connect your Google/YouTube credentials (OAuth2)
+
 Customize your stream details (title, time, etc.)
+
 Execute the workflow to schedule your YouTube Live
+
+
 🧠 Notes
+
 You may need to configure YouTube Data API access in Google Cloud Console
+
 Some nodes may require API keys depending on your setup
+
 You can modify the workflow to add thumbnails, SEO metadata, or automation triggers
+
+
 🎯 Use Case
 
 Perfect for:
